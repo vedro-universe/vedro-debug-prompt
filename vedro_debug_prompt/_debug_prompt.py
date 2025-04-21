@@ -37,5 +37,6 @@ class DebugPromptPlugin(Plugin):
 
 class DebugPrompt(PluginConfig):
     plugin = DebugPromptPlugin
+    description = "Auto‑generates AI‑ready debug prompts for failed scenarios"
 
     prompt_builder: PromptBuilder = PromptBuilder()

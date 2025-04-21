@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "vedro-debug-prompt"
 version = "0.1.0"
-description = ""
+description = "Auto‑generates AI‑ready debug prompts for failed scenarios"
 readme = "README.md"
 requires-python = ">=3.9"
 keywords = ["vedro"]
