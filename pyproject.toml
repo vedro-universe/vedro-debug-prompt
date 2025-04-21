@@ -44,17 +44,6 @@ exclude = ["tests", "tests.*"]
 [tool.setuptools.package-data]
 "vedro_debug_prompt" = ["py.typed"]
 
-[tool.bump2version]
-current_version = "0.1.0"
-commit         = true
-tag            = true
-sign_tags      = true
-message        = "bump version → {new_version}"
-files          = [
-  "pyproject.toml",
-  "vedro_debug_prompt/__init__.py"
-]
-
 [tool.flake8]
 max-line-length = 99
 statistics      = true
