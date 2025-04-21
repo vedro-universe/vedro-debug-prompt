@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=65.5.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vedro-debug-prompt"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["vedro"]
+license = { text = "Apache-2.0" }
+authors = [
+  { name = "Nikita Tsvetkov", email = "tsv1@fastmail.com" }
+]
+urls = { Homepage = "https://github.com/vedro-universe/vedro-debug-prompt" }
+classifiers = [
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed"
+]
+
+dependencies = [
+  "vedro>=1.12,<2.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pyproject-flake8==7.0.0",
+  "isort==6.0.1",
+  "mypy==1.15.0",
+]
+
+[tool.setuptools.packages.find]
+exclude = ["tests", "tests.*"]
+
+[tool.setuptools.package-data]
+"vedro_debug_prompt" = ["py.typed"]
+
+[tool.bump2version]
+current_version = "0.1.0"
+commit         = true
+tag            = true
+sign_tags      = true
+message        = "bump version → {new_version}"
+files          = [
+  "pyproject.toml",
+  "vedro_debug_prompt/__init__.py"
+]
+
+[tool.flake8]
+max-line-length = 99
+statistics      = true
+
+[tool.isort]
+line_length            = 99
+multi_line_output      = 3
+include_trailing_comma = true
+
+[tool.mypy]
+ignore_missing_imports = false
