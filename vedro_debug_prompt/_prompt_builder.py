@@ -16,12 +16,34 @@ __all__ = ("PromptBuilder",)
 
 
 class PromptBuilder:
+    """
+    Builds a detailed debug prompt for failed test scenarios.
+
+    This class collects system information, scenario details, steps,
+    source code, traceback, and variables to generate a markdown-based
+    prompt for use with AI debugging assistants.
+    """
+
     def __init__(self, *, include_variables: bool = False, tb_limit: int = 10) -> None:
+        """
+        Initialize the PromptBuilder instance with customization options.
+
+        :param include_variables: Whether to include scenario variables in the prompt.
+                                  Defaults to False.
+        :param tb_limit: The maximum number of traceback lines to include. Defaults to 10.
+        """
         self._include_variables = include_variables
         self._tb_limit = tb_limit
         self._tb_filter: Union[TracebackFilter, None] = None
 
     def build(self, scenario_result: ScenarioResult, project_dir: Path) -> str:
+        """
+        Build a formatted debug prompt from the given scenario result.
+
+        :param scenario_result: The result of the scenario, including failure and traceback.
+        :param project_dir: The root path of the project, used for path cleanup.
+        :return: A markdown string containing the full debug prompt.
+        """
         scenario = scenario_result.scenario
 
         exc_info = self._get_error(scenario_result)
@@ -45,6 +67,11 @@ class PromptBuilder:
         )
 
     def _get_prompt_template(self) -> str:
+        """
+        Retrieve the markdown template used for the debug prompt.
+
+        :return: A string representing the prompt template.
+        """
         return dedent("""
             ## SYSTEM
             {system_prompt}
@@ -75,6 +102,11 @@ class PromptBuilder:
         """).strip()
 
     def _get_system_prompt(self) -> str:
+        """
+        Generate the static system prompt for the debug assistant.
+
+        :return: A string representing the instructions for the AI assistant.
+        """
         return dedent("""
             You are a senior Python engineer helping me debug a failed automated test.
             – Analyse the information below.
@@ -87,15 +119,33 @@ class PromptBuilder:
         """).strip()
 
     def _get_error(self, scenario_result: ScenarioResult) -> Union[ExcInfo, None]:
+        """
+        Extract the first error encountered in the scenario result.
+
+        :param scenario_result: The result object containing step results.
+        :return: The exception info object if found, otherwise None.
+        """
         for step in scenario_result.step_results:
             if step.exc_info:
                 return step.exc_info
         return None
 
     def _get_scenario_name(self, scenario: VirtualScenario) -> str:
+        """
+        Retrieve the scenario's subject or name.
+
+        :param scenario: The scenario object to extract the name from.
+        :return: A string representing the scenario's subject.
+        """
         return scenario.subject
 
     def _get_scenario_steps(self, scenario_result: ScenarioResult) -> str:
+        """
+        Format each step in the scenario with status and duration.
+
+        :param scenario_result: The scenario result object containing step data.
+        :return: A formatted list of scenario steps.
+        """
         lines = []
         for step_result in scenario_result.step_results:
             status = str(step_result.status.value)
@@ -105,6 +155,12 @@ class PromptBuilder:
         return f"{linesep}".join(f"- {line}" for line in lines)
 
     def _get_scenario_source(self, scenario: VirtualScenario) -> Tuple[str, int, int]:
+        """
+        Retrieve and format the source code of the scenario.
+
+        :param scenario: The scenario whose source is to be retrieved.
+        :return: A tuple containing the formatted source, start line, and end line.
+        """
         try:
             lines, start = inspect.getsourcelines(scenario._orig_scenario)
             dedented = dedent("".join(lines)).splitlines(keepends=True)
@@ -121,13 +177,34 @@ class PromptBuilder:
                 return "", -1, -1
 
     def _number_lines(self, lines: List[str], start: int) -> str:
+        """
+        Add line numbers to a list of source code lines.
+
+        :param lines: A list of source code lines.
+        :param start: The line number to start numbering from.
+        :return: A string with each line prepended by its line number.
+        """
         return "".join(f"{start + i:4d}: {line}" for i, line in enumerate(lines))
 
     def _get_error_message(self, exc_info: ExcInfo, project_dir: Path) -> str:
+        """
+        Format the error message from the exception info.
+
+        :param exc_info: The exception info object from the scenario.
+        :param project_dir: The base project directory for path normalization.
+        :return: A cleaned and formatted error message string.
+        """
         exc_value = self._format_exception_message(exc_info.value)
         return self._cleanup_line(exc_value, project_dir)
 
     def _get_error_tb(self, exc_info: ExcInfo, project_dir: Path) -> str:
+        """
+        Generate a cleaned-up traceback string from the exception info.
+
+        :param exc_info: The exception info containing the traceback.
+        :param project_dir: The project root directory for relative path cleanup.
+        :return: A string containing the formatted and filtered traceback.
+        """
         if self._tb_filter is None:
             self._tb_filter = TracebackFilter([vedro])
         traceback = self._tb_filter.filter_tb(exc_info.traceback)
@@ -139,11 +216,6 @@ class PromptBuilder:
     def _format_exception_message(self, exc_value: BaseException) -> str:
         """
         Format an exception message for `AssertionError` or other exception types.
-
-        This method customizes the formatting of `AssertionError` messages by
-        including additional details, such as left and right operands and the
-        operator if they are available. For non-`AssertionError` exceptions, it
-        returns the string representation of the exception.
 
         :param exc_value: The exception value to format.
         :return: A string containing the formatted exception message.
@@ -163,6 +235,12 @@ class PromptBuilder:
             return f"{exc_value.__class__.__name__}: assert {left!r} {operator} {right!r}"
 
     def _get_variables(self, scenario_result: ScenarioResult) -> str:
+        """
+        Extract and format variables from the scenario result.
+
+        :param scenario_result: The result object containing the scenario scope.
+        :return: A formatted string of variable assignments.
+        """
         variables = []
         for key, val in scenario_result.scope.items():
             if not key.startswith("_"):
@@ -170,10 +248,22 @@ class PromptBuilder:
         return linesep.join(variables) if variables else "No variables found"
 
     def _get_runtime(self) -> str:
+        """
+        Get runtime information including Python version, Vedro version, and OS.
+
+        :return: A string summarizing the runtime environment.
+        """
         python_version, *_ = sys.version.split()
         vedro_version = vedro.__version__
         os_platform = platform.platform()
         return f"Python {python_version} · Vedro {vedro_version} · {os_platform}"
 
     def _cleanup_line(self, line: str, project_dir: Path) -> str:
+        """
+        Replace absolute paths in a line with relative paths for clarity.
+
+        :param line: The string line to clean.
+        :param project_dir: The project directory to be replaced.
+        :return: A string with cleaned-up file paths.
+        """
         return line.replace(str(project_dir), ".")
