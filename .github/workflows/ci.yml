@@ -32,17 +32,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --quiet --upgrade pip
-          pip install -e ".[dev]"
+          pip install --quiet --upgrade pip nox
+          nox -s install
 
-      - name: Build distributions
-        run: python -m build
+      - name: Verify build
+        run: nox -s build
 
-      - name: isort (import sorting)
-        run: isort vedro_debug_prompt/ tests
-
-      - name: flake8 (style & lint)
-        run: pflake8 vedro_debug_prompt/ tests
-
-      - name: mypy (type checking)
-        run: mypy vedro_debug_prompt/ --strict
+      - name: Run lint checks
+        run: nox -t lint

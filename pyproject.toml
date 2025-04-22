@@ -9,13 +9,12 @@ description = "Auto‑generates AI‑ready debug prompts for failed scenarios"
 readme = "README.md"
 requires-python = ">=3.9"
 keywords = ["vedro"]
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
 authors = [
   { name = "Nikita Tsvetkov", email = "tsv1@fastmail.com" }
 ]
 urls = { Homepage = "https://github.com/vedro-universe/vedro-debug-prompt" }
 classifiers = [
-  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",

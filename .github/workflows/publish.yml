@@ -19,16 +19,16 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
-      - name: Install build tools
+      - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install -e ".[dev]"
+          pip install --quiet --upgrade pip nox
+          nox -s install
 
       - name: Build distributions
-        run: python -m build
+        run: nox -s build
 
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: twine upload dist/*
+        run: nox -s publish
