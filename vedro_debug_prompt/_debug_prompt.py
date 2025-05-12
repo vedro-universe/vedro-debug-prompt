@@ -3,6 +3,7 @@ from typing import Type, Union
 from vedro import create_tmp_file
 from vedro.core import ConfigType, Dispatcher, Plugin, PluginConfig
 from vedro.events import ConfigLoadedEvent, ScenarioFailedEvent
+from vedro.plugins.artifacted import FileArtifact
 
 from ._prompt_builder import PromptBuilder
 
@@ -25,6 +26,7 @@ class DebugPromptPlugin(Plugin):
         """
         super().__init__(config)
         self._prompt_builder: PromptBuilder = config.prompt_builder
+        self._attach_as_artifact: bool = config.attach_as_artifact
         self._global_config: Union[ConfigType, None] = None
 
     def subscribe(self, dispatcher: Dispatcher) -> None:
@@ -61,6 +63,10 @@ class DebugPromptPlugin(Plugin):
         prompt_file_path = prompt_file.relative_to(self._global_config.project_dir)
         scenario_result.add_extra_details(f"AI Debug Prompt: {prompt_file_path}")
 
+        if self._attach_as_artifact:
+            artifact = FileArtifact(prompt_file_path.name, "text/markdown", prompt_file)
+            scenario_result.attach(artifact)
+
 
 class DebugPrompt(PluginConfig):
     """
@@ -75,3 +81,6 @@ class DebugPrompt(PluginConfig):
 
     prompt_builder: PromptBuilder = PromptBuilder()
     """Instance of PromptBuilder used to construct detailed AI-ready debug prompts"""
+
+    attach_as_artifact: bool = False
+    """When True, attaches the debug prompt file as a Vedro artifact"""
